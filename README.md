@@ -18,15 +18,16 @@ Sorular ──► SPEC + Plan ──(senin onayın)──► Görev: Executor �
 
 ## Kullanım
 
-1. Gereksinimlerini bir `req.md` dosyasına yaz (örnek: [examples/matlab_star_tracker/req.md](examples/matlab_star_tracker/req.md)).
+1. [examples/req_template.md](examples/req_template.md) şablonunu kopyalayıp kendi gereksinimlerinle doldur.
    Mevcut kodundaki struct alan adlarını mutlaka yaz; Executor yalnızca kendi yazdığı dosyaları görür.
 2. Bu klasörde Claude Code'u aç ve şunu yaz:
    ```
-   /gnc new examples\matlab_star_tracker\req.md D:\workspace\projects\st_delay
+   /gnc new <req.md yolu> <çalışma klasörü>
    ```
+   Örnek: `/gnc new D:\reqs\my_sensor.md D:\workspace\projects\my_sensor`.
    Seçenekler: `--lang matlab|python` (varsayılan `matlab`), `--auto` (her görevden önce onay sorma).
 3. Soruları cevapla, planı onayla, görevleri takip et.
-4. Kesinti veya Pro limiti dolarsa: `/gnc resume D:\workspace\projects\st_delay`
+4. Kesinti veya Pro limiti dolarsa: `/gnc resume <çalışma klasörü>`
 
 Çalışma klasöründe oluşanlar: `src/`, `tests/`, `tests/acceptance/` (kilitli), `codegen_check.m` (codegen
 istenirse) ve süreç durumu `.gnc/` (`SPEC.md`, `PLAN.md`, `LOG.md`, `REPORT.md`).
@@ -46,7 +47,7 @@ istenirse) ve süreç durumu `.gnc/` (`SPEC.md`, `PLAN.md`, `LOG.md`, `REPORT.md
 .claude/agents/gnc-executor.md     Executor ajanı
 .claude/agents/gnc-critic.md       Critic ajanı
 .claude/hooks/protect_acceptance.ps1
-examples/matlab_star_tracker/req.md
+examples/req_template.md           gereksinim şablonu
 ```
 
 ## Lisans

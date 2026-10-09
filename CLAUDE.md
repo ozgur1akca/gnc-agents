@@ -31,9 +31,8 @@ outside the repo at `D:\workspace\_archive\gnc-agents-python`.
 - Quaternion **scalar-last** [q1 q2 q3 q4]; q_B/I, w_B/I in rad/s.
 - Sensor models are MATLAB functions taking the dynamics struct and the sensor's own struct
   (config + internal variables); must be **codegen-compatible**.
-- Star tracker delay = integer sensor samples + small random sub-sample delay, via a buffer.
 
 ## Status / next steps
-- First real run pending: star tracker delay model (`examples/matlab_star_tracker/req.md`).
-  Field names of `sim.dyn` / `sim.str` in req.md still need to be filled in by the owner.
-- Executor-scoped hook in agent frontmatter not yet verified in a live run.
+- Requirements start from the generic template `examples/req_template.md` (Turkish). The repo is
+  public: keep examples generic, no project-specific requirements.
+- No real `/gnc` run yet; the executor-scoped hook in agent frontmatter is not yet verified live.
