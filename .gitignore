@@ -8,3 +8,4 @@ codegen/
 slprj/
 *.asv
 *.mex*
+.claude/gnc_session.json
