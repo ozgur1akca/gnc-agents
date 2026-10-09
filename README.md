@@ -48,3 +48,7 @@ istenirse) ve süreç durumu `.gnc/` (`SPEC.md`, `PLAN.md`, `LOG.md`, `REPORT.md
 .claude/hooks/protect_acceptance.ps1
 examples/matlab_star_tracker/req.md
 ```
+
+## Lisans
+
+[MIT](LICENSE)
