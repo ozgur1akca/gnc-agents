@@ -1,7 +1,7 @@
 # CLAUDE.md — gnc-agents
 
 Context for Claude Code. The owner works on spacecraft AOCS/GNC (attitude determination &
-control) and communicates in **Turkish**; reply to the owner in Turkish. Everything in the repo
+control). Reply in the language the user writes in (Turkish or English). Everything in the repo
 (code, comments, docs, prompts, templates) is in **English**; the repo is public.
 
 ## What this project is
