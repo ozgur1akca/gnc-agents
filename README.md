@@ -1,55 +1,65 @@
 # gnc-agents
 
-Uydu AOCS/GNC yazılımı (sensör/aktüatör modelleri, dinamik, kestirim) geliştirmek için
-**Claude Code** içinde çalışan Planner ↔ Executor ↔ Critic iş akışı. Claude **Pro** üyeliğiyle
-çalışır; API anahtarı gerekmez.
+A Planner ↔ Executor ↔ Critic workflow for developing spacecraft AOCS/GNC software (sensor and
+actuator models, dynamics, estimation) in MATLAB or Python, running natively in
+**Claude Code**. It works with a Claude **Pro** subscription; no API key is needed.
 
-| Rol | Nerede | Model | Görev |
+| Role | Where | Model | Job |
 |---|---|---|---|
-| Planner / Supervisor | ana sohbet | Opus | Soruları sorar, SPEC + plan + kilitli kabul testlerini yazar, süreci yönetir |
-| Executor | `.claude/agents/gnc-executor.md` | Sonnet | Bir görevi kodlar, kendi testlerini yazar, testleri koşar |
-| Critic | `.claude/agents/gnc-critic.md` | Opus (salt-okunur) | Testleri kendisi yeniden koşar, kabul testlerinin hash'ini doğrular, GNC açısından inceler |
+| Planner / Supervisor | main session | Opus | Asks clarifying questions, writes the SPEC, the plan and the frozen acceptance tests, runs the process |
+| Executor | `.claude/agents/gnc-executor.md` | Sonnet | Implements one task, writes its own tests, runs them |
+| Critic | `.claude/agents/gnc-critic.md` | Opus (read-only) | Re-runs the tests itself, verifies acceptance-test hashes, reviews GNC correctness |
 
 ```
-Sorular ──► SPEC + Plan ──(senin onayın)──► Görev: Executor ──► Critic ──(approve)──► sonraki görev / Rapor
-                                                   ▲               │
-                                                   └───(revise)────┤  4 denemede olmazsa → sana sorar
+Questions ──► SPEC + Plan ──(your approval)──► Task: Executor ──► Critic ──(approve)──► next task / Report
+                                                      ▲              │
+                                                      └──(revise)────┤  not approved after 4 tries → asks you
 ```
 
-## Kullanım
+## Usage
 
-1. [examples/req_template.md](examples/req_template.md) şablonunu kopyalayıp kendi gereksinimlerinle doldur.
-   Mevcut kodundaki struct alan adlarını mutlaka yaz; Executor yalnızca kendi yazdığı dosyaları görür.
-2. Bu klasörde Claude Code'u aç ve şunu yaz:
+1. Copy [examples/req_template.md](examples/req_template.md) and fill it in with your requirements.
+   Always list the struct field names of your existing code; the executor only sees files it wrote.
+2. Open Claude Code in this folder and type:
    ```
-   /gnc new <req.md yolu> <çalışma klasörü>
+   /gnc new <path to req.md> <workspace folder>
    ```
-   Örnek: `/gnc new D:\reqs\my_sensor.md D:\workspace\projects\my_sensor`.
-   Seçenekler: `--lang matlab|python` (varsayılan `matlab`), `--auto` (her görevden önce onay sorma).
-3. Soruları cevapla, planı onayla, görevleri takip et.
-4. Kesinti veya Pro limiti dolarsa: `/gnc resume <çalışma klasörü>`
+   Example: `/gnc new D:\reqs\my_sensor.md D:\workspace\projects\my_sensor`.
+   Options: `--lang matlab|python` (default `matlab`), `--auto` (do not ask before each task).
+3. Answer the questions, approve the plan, follow the tasks.
+4. If the session ends or you hit the Pro usage limit: `/gnc resume <workspace folder>`
 
-Çalışma klasöründe oluşanlar: `src/`, `tests/`, `tests/acceptance/` (kilitli), `codegen_check.m` (codegen
-istenirse) ve süreç durumu `.gnc/` (`SPEC.md`, `PLAN.md`, `LOG.md`, `REPORT.md`).
+Claude talks to you in the language you write in; all files and code are in English.
 
-## Güvenceler
+The workspace folder will contain `src/`, `tests/`, `tests/acceptance/` (frozen), `codegen_check.m`
+(if code generation is required) and the process state in `.gnc/` (`SPEC.md`, `PLAN.md`, `LOG.md`,
+`REPORT.md`).
 
-- **Kilitli kabul testleri:** Executor'ın `tests/acceptance/` altına yazması hook ile engellenir
-  ([.claude/hooks/protect_acceptance.ps1](.claude/hooks/protect_acceptance.ps1)); Critic ayrıca SHA256 hash'lerini kontrol eder.
-- **Sert kapı:** Testler Critic'in kendi koşusunda geçmeden, hash'ler tutmadan veya blocker/major sorun varken görev onaylanmaz.
-- **MATLAB:** testler kendi makinende, kendi lisansınla `matlab -batch` ile koşar (`matlab` PATH'te olmalı).
-  SPEC codegen isterse `codegen_check.m` test komutuna eklenir (MATLAB Coder lisansı gerekir).
+## Safeguards
 
-## Yapı
+- **Frozen acceptance tests:** a hook blocks the executor from writing under `tests/acceptance/`
+  ([.claude/hooks/protect_acceptance.ps1](.claude/hooks/protect_acceptance.ps1)); the critic also checks their SHA256 hashes.
+- **Hard gate:** a task is not approved unless the tests pass in the critic's own run, the hashes match
+  and no blocker/major issue remains.
+- **MATLAB:** tests run on your machine with your own license via `matlab -batch` (`matlab` must be on PATH).
+  If the SPEC requires code generation, `codegen_check.m` is added to the test command (needs a MATLAB Coder license).
+
+## Requirements
+
+- Claude Code (CLI or IDE extension) with a Claude Pro or higher plan
+- Windows with PowerShell (the protection hook is a PowerShell script)
+- MATLAB on PATH for MATLAB projects, or Python 3.11+ with pytest for Python projects
+
+## Layout
 
 ```
-.claude/skills/gnc/SKILL.md        iş akışı (Planner talimatları)
-.claude/agents/gnc-executor.md     Executor ajanı
-.claude/agents/gnc-critic.md       Critic ajanı
+.claude/skills/gnc/SKILL.md          workflow (planner instructions)
+.claude/agents/gnc-executor.md       executor agent
+.claude/agents/gnc-critic.md         critic agent
 .claude/hooks/protect_acceptance.ps1
-examples/req_template.md           gereksinim şablonu
+examples/req_template.md             requirements template
 ```
 
-## Lisans
+## License
 
 [MIT](LICENSE)

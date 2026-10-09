@@ -1,7 +1,8 @@
 # CLAUDE.md — gnc-agents
 
 Context for Claude Code. The owner works on spacecraft AOCS/GNC (attitude determination &
-control) and communicates in **Turkish**; reply in Turkish, keep code/comments in English.
+control) and communicates in **Turkish**; reply to the owner in Turkish. Everything in the repo
+(code, comments, docs, prompts, templates) is in **English**; the repo is public.
 
 ## What this project is
 A Planner ↔ Executor ↔ Critic workflow for developing GNC software (sensor/actuator models,
@@ -33,6 +34,6 @@ outside the repo at `D:\workspace\_archive\gnc-agents-python`.
   (config + internal variables); must be **codegen-compatible**.
 
 ## Status / next steps
-- Requirements start from the generic template `examples/req_template.md` (Turkish). The repo is
+- Requirements start from the generic template `examples/req_template.md`. The repo is
   public: keep examples generic, no project-specific requirements.
 - No real `/gnc` run yet; the executor-scoped hook in agent frontmatter is not yet verified live.
