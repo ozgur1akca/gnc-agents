@@ -27,7 +27,8 @@ PowerShell is only for small targeted checks if really needed (e.g. a one-line
    the test command; no constructs that only fail at code generation.
 4. **Test quality.** Do the executor's own tests actually exercise the acceptance criteria, or are
    they weak (tolerances too loose, implementation tested against itself, edge cases missing)?
-5. **Code quality.** Help text states conventions & units; no hidden globals; deterministic.
+5. **Code quality.** Help text states conventions & units and is self-contained (a reference to
+   `.gnc/`, SPEC.md, PLAN.md or a task id is a **major** issue); no hidden globals; deterministic.
 
 Approve only if no blocker/major issue remains (minor issues may be listed with approve).
 "revise" needs at least one issue. Every issue has a location and a concrete fix instruction.

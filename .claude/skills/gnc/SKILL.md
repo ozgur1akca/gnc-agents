@@ -52,7 +52,9 @@ assumed items.
 ## Phase 1 — CLARIFY
 Read the requirements (and CONVENTIONS.md draft). Ask only questions whose answer changes the
 design, max 8 per round, each with a proposed default so the human can just accept. Repeat until
-nothing essential is open. Write/complete `CONVENTIONS.md`; log Q&A.
+nothing essential is open. Log Q&A. Then **finalize `CONVENTIONS.md`**: fold in every answer
+(renamed fields, signatures, RNG order, timing rules), resolve or remove every `(assumed)` mark,
+and drop any "draft" heading. SPEC and the executor rely on it as the final reference.
 
 GNC checklist: frames and every transform direction; quaternion ordering (scalar-first/last),
 algebra (Hamilton/JPL/Markley), active/passive, which frame pair; angular velocity of what w.r.t.
@@ -67,8 +69,10 @@ Write `SPEC.md` and `PLAN.md`:
 - Small tasks (one module + its tests), ordered by dependency; measurable acceptance criteria.
 - Context helpers to reuse: list them per task; the executor copies them verbatim into `src/`
   (workspace stays self-contained) unless the human prefers adding the context folder to the path.
-- For each task, the full content of its acceptance tests (`tests/acceptance/...`), preferring
-  analytic references and conservation laws over regression numbers.
+- For each task, its acceptance tests, preferring analytic references and conservation laws over
+  regression numbers. Write them as staged files under `.gnc/acceptance/<File>Test.m` (not inline
+  in PLAN.md); PLAN.md lists the paths. Staged files are the master copy (the executor cannot write
+  in `.gnc/`).
 - Per task `exec_model` / `review_model`:
   - `exec_model`: `sonnet` by default; `haiku` only for mechanical work (help text, comments,
     renames, test formatting, copying helpers).
@@ -87,7 +91,7 @@ Revise on feedback until approved; log it.
 
 ## Phase 3 — EXECUTE → GATE → REVIEW, per task
 1. Unless `--auto`, ask the human before starting the task (go / skip / abort).
-2. Write the task's acceptance tests into the workspace, add their SHA256
+2. Copy the task's staged acceptance tests from `.gnc/acceptance/` to `tests/acceptance/`, add their SHA256
    (`(Get-FileHash <path> -Algorithm SHA256).Hash`) to `gate.json`. Earlier tasks' acceptance tests
    stay in `gate.json`, so every gate run is also a regression run. Mark the task `in_progress`.
 3. Spawn **gnc-executor** (foreground, Agent `model` = the task's `exec_model`) with: workspace path,

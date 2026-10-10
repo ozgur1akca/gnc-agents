@@ -28,6 +28,9 @@ output or the critic's issues.
 ## Rules (all languages)
 - Follow CONVENTIONS.md literally: quaternion element ordering and algebra, frames, units, struct
   field names, signature style. State them in each function's help text/docstring.
+- Help text and comments must be self-contained: describe inputs, outputs, units and conventions
+  in the file itself. Never reference workflow files (`.gnc/`, SPEC.md, PLAN.md, task ids); they
+  are not shipped with the code.
 - SI units, angles in rad, double precision unless the SPEC says otherwise. Deterministic:
   fixed RNG seeds, no wall-clock dependence, no plotting windows.
 - Write your own tests that genuinely exercise the acceptance criteria: analytic cases, edge
