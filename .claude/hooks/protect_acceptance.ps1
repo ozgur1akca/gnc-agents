@@ -24,5 +24,12 @@ if (Test-Path $sessionFile) {
     $s = Get-Content $sessionFile -Raw -Encoding UTF8 | ConvertFrom-Json
     foreach ($c in @($s.context)) { if ($c -and (Under $target (Norm $c))) { Deny "'$path' is inside read-only context folder '$c'." } }
     if ($s.workspace -and -not (Under $target (Norm $s.workspace))) { Deny "'$path' is outside the workspace '$($s.workspace)'." }
+    $gateFile = Join-Path $s.workspace '.gnc\gate.json'
+    if (Test-Path $gateFile) {
+        $g = Get-Content $gateFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        foreach ($p in $g.acceptance.PSObject.Properties) {
+            if ($target -eq (Norm (Join-Path $s.workspace $p.Name))) { Deny "'$path' is a frozen gate file (hashed in gate.json)." }
+        }
+    }
 }
 exit 0
