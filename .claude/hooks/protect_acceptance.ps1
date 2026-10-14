@@ -1,35 +1,23 @@
-# PreToolUse hook (exit 2 = deny), registered in .claude/settings.json. Applies only to the gnc-executor
-# subagent: writes allowed only inside the active workspace, never under tests/acceptance/, .gnc/ or a
-# read-only context folder. Workspace and context come from .claude/gnc_session.json (written by /gnc).
-$raw = [Console]::In.ReadToEnd()
-try { $evt = $raw | ConvertFrom-Json } catch { exit 0 }
-if ($evt.agent_type -ne 'gnc-executor') { exit 0 }
+# PreToolUse hook for Write/Edit (exit 2 = deny). Applies only to the gnc-executor subagent:
+# writes are allowed only inside the workspace registered for this session (gnc_session.ps1),
+# never under tests/acceptance/, .gnc/, a context folder or a frozen file listed in gate.json.
+. (Join-Path $PSScriptRoot 'gnc_common.ps1')
+$evt = Get-GncEvent
+if (-not $evt -or $evt.agent_type -ne 'gnc-executor') { exit 0 }
 $path = $evt.tool_input.file_path
 if (-not $path) { $path = $evt.tool_input.notebook_path }
 if (-not $path) { exit 0 }
 
-function Deny($msg) { [Console]::Error.WriteLine("BLOCKED: $msg Report the problem in NOTES instead."); exit 2 }
-function Norm($p) {
-    if (-not [IO.Path]::IsPathRooted($p)) { $p = Join-Path $(if ($evt.cwd) { $evt.cwd } else { (Get-Location).Path }) $p }
-    ([IO.Path]::GetFullPath($p) -replace '\\', '/').TrimEnd('/').ToLowerInvariant()
-}
-function Under($p, $dir) { $p -eq $dir -or $p.StartsWith("$dir/") }
+$s = Get-GncSession $evt
+if (-not $s) { Deny-Gnc "no /gnc session is registered for session $($evt.session_id); the planner must run gnc_session.ps1 first." }
 
-$target = Norm $path
-if ($target -match '(^|/)tests/acceptance/') { Deny "'$path' is a frozen acceptance test." }
-if ($target -match '(^|/)\.gnc/') { Deny "'$path' is planner state (.gnc/)." }
-
-$sessionFile = Join-Path $PSScriptRoot '..\gnc_session.json'
-if (Test-Path $sessionFile) {
-    $s = Get-Content $sessionFile -Raw -Encoding UTF8 | ConvertFrom-Json
-    foreach ($c in @($s.context)) { if ($c -and (Under $target (Norm $c))) { Deny "'$path' is inside read-only context folder '$c'." } }
-    if ($s.workspace -and -not (Under $target (Norm $s.workspace))) { Deny "'$path' is outside the workspace '$($s.workspace)'." }
-    $gateFile = Join-Path $s.workspace '.gnc\gate.json'
-    if (Test-Path $gateFile) {
-        $g = Get-Content $gateFile -Raw -Encoding UTF8 | ConvertFrom-Json
-        foreach ($p in $g.acceptance.PSObject.Properties) {
-            if ($target -eq (Norm (Join-Path $s.workspace $p.Name))) { Deny "'$path' is a frozen gate file (hashed in gate.json)." }
-        }
-    }
+$target = ConvertTo-GncPath $path $evt.cwd
+$ws = ConvertTo-GncPath $s.workspace $null
+if ($target -match '(^|/)tests/acceptance/') { Deny-Gnc "'$path' is a frozen acceptance test." }
+if ($target -match '(^|/)\.gnc/') { Deny-Gnc "'$path' is planner state (.gnc/)." }
+foreach ($c in @($s.context)) { if ($c -and (Test-GncUnder $target (ConvertTo-GncPath $c $null))) { Deny-Gnc "'$path' is inside read-only context folder '$c'." } }
+if (-not (Test-GncUnder $target $ws)) { Deny-Gnc "'$path' is outside the workspace '$($s.workspace)'. Scratch files go to <workspace>/.scratch/." }
+foreach ($f in Get-GncFrozen $s.workspace) {
+    if ($target -eq (ConvertTo-GncPath (Join-Path $s.workspace $f) $null)) { Deny-Gnc "'$path' is a frozen file (hashed in gate.json)." }
 }
 exit 0

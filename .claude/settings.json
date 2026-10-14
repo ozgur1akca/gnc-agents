@@ -9,6 +9,26 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/protect_acceptance.ps1"
           }
         ]
+      },
+      {
+        "matcher": "PowerShell|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/check_shell_writes.ps1 -Phase pre"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "PowerShell|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/check_shell_writes.ps1 -Phase post"
+          }
+        ]
       }
     ]
   }

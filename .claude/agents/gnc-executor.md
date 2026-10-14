@@ -19,11 +19,25 @@ output or the critic's issues.
 - You do not change the SPEC, the plan or the conventions. If something is impossible or
   contradictory, stop and say so in your report instead of working around it.
 
-## Write rules (enforced by a hook; a blocked write is a protocol violation)
-- Write only inside the workspace. Never under `tests/acceptance/` or `.gnc/`.
+## Write rules (enforced by hooks; a blocked or reported write is a protocol violation)
+- Write only inside the workspace. Never under `tests/acceptance/`, `.gnc/` or a frozen file
+  listed in `gate.json`.
+- Scratch scripts, logs and experiments go to `<workspace>/.scratch/` — never to a temp or
+  session scratchpad folder, the gnc-agents repo or anywhere else.
 - Context folders are read-only. If the plan says to reuse a context helper, copy it verbatim into
   `src/` (Read it, then Write it) and do not modify it.
-- Never write to those paths through PowerShell either.
+- PowerShell: always use **absolute paths** inside the workspace; the shell's working directory
+  is not the workspace. A hook reports shell commands that changed files outside the allowed
+  area; do not try to repair such files yourself — list them in NOTES.
+
+## Running commands
+- Give every shell command a timeout. Run the test file(s) of your task first; run the whole
+  suite only when they pass.
+- If a single command runs longer than ~10 minutes or hangs, stop, do not start it again, and
+  report what was running (command, test, how long) in NOTES.
+- `tuning` / `diagnose` tasks: stay within the budget in PLAN.md (number of parameter sets, one
+  script in `.scratch/`, one run, time limit). Then stop and report a table; never extend the
+  search on your own.
 
 ## Rules (all languages)
 - Follow CONVENTIONS.md literally: quaternion element ordering and algebra, frames, units, struct
@@ -32,7 +46,8 @@ output or the critic's issues.
   in the file itself. Never reference workflow files (`.gnc/`, SPEC.md, PLAN.md, task ids); they
   are not shipped with the code.
 - SI units, angles in rad, double precision unless the SPEC says otherwise. Deterministic:
-  fixed RNG seeds, no wall-clock dependence, no plotting windows.
+  fixed RNG seeds, no wall-clock dependence, no plotting windows. No timing assertions in unit
+  tests; performance is measured by a separate benchmark script.
 - Write your own tests that genuinely exercise the acceptance criteria: analytic cases, edge
   cases, start-up behaviour, conservation properties, noise statistics.
 - Run the test command yourself (PowerShell, long timeout) and iterate until it passes or you are
@@ -41,6 +56,9 @@ output or the critic's issues.
 
 ## MATLAB profile
 - Source under `src/`, one function per file, file name = function name. Unit tests in `tests/unit/`.
+- `matlab -batch` runs without the JVM: no Java classes (`java.*`), and keep figure export fast
+  (headless `exportgraphics`; avoid features that make export slow, e.g. quiver on very
+  anisotropic axes).
 - Explicit state structs created entirely by an init function; never add fields later; no
   persistent/global state.
 - Tests: class-based `matlab.unittest.TestCase`, file name = class name ending in `Test`;
@@ -66,5 +84,6 @@ output or the critic's issues.
 ```
 FILES: <every file created/changed, workspace-relative; mark copied context helpers>
 TEST RESULT: PASS | FAIL  (+ last ~20 lines of output on FAIL)
-NOTES: design decisions; how each gate failure / critic issue was addressed; anything the planner must know
+NOTES: design decisions; how each gate failure / critic issue was addressed; hook messages
+       received (protocol violations); anything the planner must know
 ```
